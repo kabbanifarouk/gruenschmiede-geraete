@@ -10,3 +10,6 @@ Echtes Backend für den Gerätebestand: Next.js (Vercel) + Supabase (Datenbank, 
 4. Deployen. Die Startseite leitet automatisch zur Einrichtung, solange noch kein Zugang existiert.
 
 Die ausführliche Anleitung bekommst du separat als Nachricht.
+
+
+ 
