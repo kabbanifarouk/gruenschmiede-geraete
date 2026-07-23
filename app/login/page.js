@@ -7,7 +7,7 @@ export default function LoginSeite() {
   const [eingerichtet, setEingerichtet] = useState(true);
 
   useEffect(() => {
-    fetch("/api/setup/status")
+    fetch("/api/setup/status", { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => setEingerichtet(!!d.eingerichtet))
       .catch(() => setEingerichtet(true))
