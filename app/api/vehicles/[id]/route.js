@@ -1,40 +1,53 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireSession, requireAdmin } from "@/lib/auth";
+import { antwortFehler, heuteKurz } from "@/lib/route";
 
-function heute() {
-  return new Date().toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "2-digit" });
-}
+const MITARBEITER_FELDER = ["status", "notiz", "faellig"];
+const ADMIN_FELDER = [...MITARBEITER_FELDER, "name", "kennzeichen"];
 
 export async function PATCH(req, { params }) {
-  let sitzung;
-  try { sitzung = await requireSession(); } catch (e) {
-    return NextResponse.json({ fehler: "nicht angemeldet" }, { status: e.status || 401 });
-  }
-  const body = await req.json();
-  const { logtext, ...patch } = body;
-
-  const update = { ...patch };
-  if (logtext !== undefined) {
-    if (logtext === null) {
-      update.log = [];
-    } else {
-      const { data: aktuell } = await db().from("vehicles").select("log").eq("id", params.id).single();
-      update.log = [{ d: heute(), txt: logtext, wer: sitzung.name }, ...((aktuell && aktuell.log) || [])].slice(0, 40);
+  try {
+    const sitzung = await requireSession();
+    const { logtext, ...patch } = await req.json();
+    const erlaubt = sitzung.rolle === "admin" ? ADMIN_FELDER : MITARBEITER_FELDER;
+    for (const feld of Object.keys(patch)) {
+      if (!erlaubt.includes(feld)) {
+        return NextResponse.json({ fehler: "Keine Berechtigung für dieses Feld." }, { status: 403 });
+      }
     }
-  }
+    if (patch.name !== undefined && !String(patch.name).trim()) {
+      return NextResponse.json({ fehler: "Name fehlt." }, { status: 400 });
+    }
 
-  const { data, error } = await db().from("vehicles").update(update).eq("id", params.id).select().single();
-  if (error) return NextResponse.json({ fehler: error.message }, { status: 500 });
-  return NextResponse.json(data);
+    const update = { ...patch };
+    if (logtext !== undefined) {
+      if (logtext === null) {
+        if (sitzung.rolle !== "admin") return NextResponse.json({ fehler: "Keine Berechtigung." }, { status: 403 });
+        update.log = [];
+      } else {
+        const { data: aktuell } = await db().from("vehicles").select("log").eq("id", params.id).single();
+        update.log = [{ d: heuteKurz(), txt: logtext, wer: sitzung.name }, ...((aktuell && aktuell.log) || [])].slice(0, 60);
+      }
+    }
+
+    const { data, error } = await db().from("vehicles").update(update).eq("id", params.id).select().single();
+    if (error) throw error;
+    return NextResponse.json(data);
+  } catch (e) {
+    return antwortFehler(e);
+  }
 }
 
 export async function DELETE(req, { params }) {
-  try { await requireAdmin(); } catch (e) {
-    return NextResponse.json({ fehler: "keine Berechtigung" }, { status: e.status || 403 });
+  try {
+    await requireAdmin();
+    // Geräte aus dem entfernten Fahrzeug wandern zurück ins Lager.
+    await db().from("tools").update({ ort_id: "lager" }).eq("ort_id", params.id);
+    await db().storage.from("fotos").remove([`vehicle/${params.id}.jpg`]);
+    await db().from("vehicles").delete().eq("id", params.id);
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    return antwortFehler(e);
   }
-  // Geräte aus dem entfernten Fahrzeug wandern zurück ins Lager.
-  await db().from("tools").update({ ort_id: "lager" }).eq("ort_id", params.id);
-  await db().from("vehicles").delete().eq("id", params.id);
-  return NextResponse.json({ ok: true });
 }

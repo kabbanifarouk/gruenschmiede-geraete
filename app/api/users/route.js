@@ -1,24 +1,28 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin, anlegen } from "@/lib/auth";
+import { antwortFehler } from "@/lib/route";
 
 export async function GET() {
-  try { await requireAdmin(); } catch (e) {
-    return NextResponse.json({ fehler: "keine Berechtigung" }, { status: e.status || 403 });
+  try {
+    await requireAdmin();
+    const { data } = await db()
+      .from("staff")
+      .select("id, name, username, rolle, gesperrt_bis, created_at")
+      .order("created_at", { ascending: true });
+    return NextResponse.json(data || []);
+  } catch (e) {
+    return antwortFehler(e);
   }
-  const { data } = await db().from("staff").select("id, name, username, rolle").order("created_at", { ascending: true });
-  return NextResponse.json(data || []);
 }
 
 export async function POST(req) {
-  try { await requireAdmin(); } catch (e) {
-    return NextResponse.json({ fehler: "keine Berechtigung" }, { status: e.status || 403 });
-  }
-  const { name, username, code, rolle } = await req.json();
   try {
+    await requireAdmin();
+    const { name, username, code, rolle } = await req.json();
     const person = await anlegen(name, username, code, rolle === "admin" ? "admin" : "mitarbeiter");
     return NextResponse.json(person);
   } catch (e) {
-    return NextResponse.json({ fehler: e.message }, { status: e.status || 500 });
+    return antwortFehler(e);
   }
 }

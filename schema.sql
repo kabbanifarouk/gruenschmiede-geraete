@@ -74,3 +74,72 @@ alter table tools enable row level security;
 insert into storage.buckets (id, name, public)
 values ('fotos', 'fotos', true)
 on conflict (id) do nothing;
+
+-- ============================================================
+-- Lagerbestände (ab Oktober 2026)
+-- ============================================================
+create table if not exists materials (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  kategorie text not null default '',
+  einheit text not null default 'Stück',
+  bestand numeric(12,2) not null default 0,
+  mindestbestand numeric(12,2),
+  lagerort text not null default '',
+  artikel_nr text not null default '',
+  preis numeric(12,2),
+  notiz text not null default '',
+  foto_url text,
+  thumb text,
+  hat_bild boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists material_bewegungen (
+  id uuid primary key default gen_random_uuid(),
+  material_id uuid not null references materials(id) on delete cascade,
+  art text not null check (art in ('zugang','abgang','korrektur','angelegt')),
+  menge numeric(12,2) not null,
+  bestand_nach numeric(12,2) not null,
+  notiz text not null default '',
+  wer text not null default '',
+  created_at timestamptz not null default now()
+);
+
+create index if not exists material_bewegungen_material_idx on material_bewegungen (material_id, created_at desc);
+
+alter table materials enable row level security;
+alter table material_bewegungen enable row level security;
+
+create or replace function material_buchen(p_id uuid, p_art text, p_menge numeric, p_notiz text, p_wer text)
+returns materials
+language plpgsql
+set search_path = public
+as $$
+declare
+  m materials;
+  neu numeric(12,2);
+  delta numeric(12,2);
+begin
+  select * into m from materials where id = p_id for update;
+  if not found then raise exception 'Artikel nicht gefunden'; end if;
+  if p_menge is null or p_menge < 0 then raise exception 'Ungültige Menge'; end if;
+  if p_art = 'zugang' then
+    neu := m.bestand + p_menge; delta := p_menge;
+  elsif p_art = 'abgang' then
+    if p_menge > m.bestand then raise exception 'Nicht genug auf Lager (vorhanden: % %)', replace(trim_scale(m.bestand)::text, '.', ','), m.einheit; end if;
+    neu := m.bestand - p_menge; delta := -p_menge;
+  elsif p_art = 'korrektur' then
+    neu := p_menge; delta := p_menge - m.bestand;
+  else
+    raise exception 'Unbekannte Buchungsart';
+  end if;
+  update materials set bestand = neu, updated_at = now() where id = p_id returning * into m;
+  insert into material_bewegungen (material_id, art, menge, bestand_nach, notiz, wer)
+  values (p_id, p_art, delta, neu, coalesce(p_notiz, ''), coalesce(p_wer, ''));
+  return m;
+end;
+$$;
+
+revoke execute on function material_buchen(uuid, text, numeric, text, text) from public, anon, authenticated;

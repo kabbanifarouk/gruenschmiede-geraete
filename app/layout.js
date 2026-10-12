@@ -1,13 +1,19 @@
+import "@fontsource-variable/archivo/wdth.css";
 import "./globals.css";
 
 export const metadata = {
-  title: "Grünschmiede – Gerätebestand",
-  description: "Gerätebestand der Grünschmiede Greenteam",
+  title: { default: "Grünschmiede", template: "%s · Grünschmiede" },
+  description: "Geräte, Fahrzeuge und Lagerbestand der Grünschmiede Greenteam",
   manifest: "/manifest.json",
-  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Grünschmiede" },
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "Grünschmiede" },
 };
 
-export const viewport = { themeColor: "#15181A", width: "device-width", initialScale: 1 };
+export const viewport = {
+  themeColor: "#edefe9",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 export default function RootLayout({ children }) {
   return (

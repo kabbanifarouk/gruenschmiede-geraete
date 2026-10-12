@@ -1,36 +1,37 @@
 "use client";
 import { useState } from "react";
+import Icon from "./Icon";
+import { Bestaetigen } from "./ui";
 
 export default function Verlauf({ log, istAdmin, onLeeren }) {
-  const [offen, setOffen] = useState(false);
+  const [alle, setAlle] = useState(false);
   const [fragen, setFragen] = useState(false);
   const eintraege = log || [];
-  if (!eintraege.length) return null;
   return (
-    <div className="verlaufblock">
-      <button className="verlaufkopf" onClick={() => { setOffen(!offen); setFragen(false); }}>
-        <span className="vtitel">Verlauf</span>
-        <span className="vzahl">{eintraege.length}</span>
-        <span className="pfeil">{offen ? "▴" : "▾"}</span>
-      </button>
-      {offen && (
-        <div className="verlaufinhalt">
-          {eintraege.slice(0, 15).map((l, i) => (
-            <div key={i} className="logzeile"><span className="mono">{l.d}</span> {l.txt}{l.wer ? ` · ${l.wer}` : ""}</div>
+    <div className="karte">
+      <div className="karte-kopf">
+        <h2 className="titel-s reihe" style={{ gap: 8 }}><Icon name="verlauf" groesse={18} className="sehr-leise" />Verlauf</h2>
+        {istAdmin && eintraege.length > 0 && <button className="knopf geist klein" onClick={() => setFragen(true)}>Leeren</button>}
+      </div>
+      {!eintraege.length ? (
+        <p className="leise klein" style={{ padding: "0 20px 18px" }}>Noch keine Einträge.</p>
+      ) : (
+        <ul className="zeitleiste">
+          {(alle ? eintraege : eintraege.slice(0, 6)).map((l, i) => (
+            <li key={i}>
+              <div className="zeit-text">{l.txt}</div>
+              <div className="zeit-meta">{l.d}{l.wer ? `, ${l.wer}` : ""}</div>
+            </li>
           ))}
-          {eintraege.length > 15 && <div className="logzeile leise">… {eintraege.length - 15} ältere Einträge</div>}
-          {istAdmin && !fragen && <button className="linkknopf" onClick={() => setFragen(true)}>Verlauf löschen</button>}
-          {istAdmin && fragen && (
-            <div className="bestaetigung">
-              <div className="btext">Verlauf wirklich löschen? Die Einträge sind danach weg und lassen sich nicht wiederherstellen.</div>
-              <div className="aktionen eng">
-                <button className="warnknopf" onClick={() => { onLeeren(); setFragen(false); setOffen(false); }}>Ja, löschen</button>
-                <button className="sekundaer" onClick={() => setFragen(false)}>Abbrechen</button>
-              </div>
-            </div>
-          )}
+        </ul>
+      )}
+      {eintraege.length > 6 && (
+        <div style={{ padding: "0 20px 16px" }}>
+          <button className="textlink klein" onClick={() => setAlle(!alle)}>{alle ? "Weniger anzeigen" : `Alle ${eintraege.length} Einträge anzeigen`}</button>
         </div>
       )}
+      <Bestaetigen offen={fragen} titel="Verlauf leeren?" text="Alle Einträge werden endgültig gelöscht." knopf="Verlauf leeren"
+        onNein={() => setFragen(false)} onJa={() => { setFragen(false); onLeeren(); }} />
     </div>
   );
 }

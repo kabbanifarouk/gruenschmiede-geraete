@@ -1,20 +1,6 @@
 "use client";
 import { useState } from "react";
-import Symbol from "./Symbol";
-
-export function Bild({ thumb, art, groesse = 24 }) {
-  if (thumb) return <img className="thumb" src={thumb} alt="" style={{ width: groesse, height: groesse }} />;
-  return <Symbol art={art} groesse={groesse} />;
-}
-
-export function Grossbild({ url, vorhanden }) {
-  if (!vorhanden) return null;
-  return (
-    <div className="banner">
-      {url ? <img src={url} alt="" /> : <div className="bannerleer">Bild wird geladen …</div>}
-    </div>
-  );
-}
+import Icon from "./Icon";
 
 function bildLaden(datei) {
   return new Promise((ok, fehler) => {
@@ -47,31 +33,30 @@ function ausschnitt(bild, kante, guete) {
   return c.toDataURL("image/jpeg", guete);
 }
 
-export function BildFeld({ art, id, hatBild, onFertig }) {
+// Foto aufnehmen / austauschen / entfernen. art: "tool" | "vehicle" | "material"
+export default function FotoKnopf({ art, id, hatBild, onFertig, melde }) {
   const [arbeitet, setArbeitet] = useState(false);
-  const [fehler, setFehler] = useState(null);
-  const [fragen, setFragen] = useState(false);
 
   async function verarbeiten(e) {
     const datei = e.target.files && e.target.files[0];
     e.target.value = "";
     if (!datei) return;
-    setFehler(null);
     setArbeitet(true);
     try {
       const bild = await bildLaden(datei);
-      const gross = skalieren(bild, 900, 0.72);
-      const thumb = ausschnitt(bild, 120, 0.6);
+      const gross = skalieren(bild, 1200, 0.74);
+      const thumb = ausschnitt(bild, 160, 0.62);
       const r = await fetch("/api/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ art, id, thumb, gross }),
       });
-      const d = await r.json();
+      const d = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(d.fehler || "Fehlgeschlagen");
-      onFertig({ thumb: d.thumb, url: d.url, hatBild: true });
+      await onFertig();
+      melde && melde("Foto gespeichert");
     } catch (err) {
-      setFehler("Bild konnte nicht gespeichert werden. Versuch ein kleineres Foto.");
+      melde && melde("Foto konnte nicht gespeichert werden", "fehler");
     }
     setArbeitet(false);
   }
@@ -84,29 +69,22 @@ export function BildFeld({ art, id, hatBild, onFertig }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ art, id }),
       });
-    } catch (e) { /* egal, wir setzen den Zustand trotzdem zurück */ }
-    onFertig({ thumb: null, url: null, hatBild: false });
-    setFragen(false);
+      await onFertig();
+      melde && melde("Foto entfernt");
+    } catch (e) {
+      melde && melde("Foto konnte nicht entfernt werden", "fehler");
+    }
     setArbeitet(false);
   }
 
   return (
-    <div className="bildfeld">
-      <label className="bildknopf">
-        {arbeitet ? "Einen Moment …" : hatBild ? "Bild austauschen" : "Bild aufnehmen oder auswählen"}
-        <input type="file" accept="image/*" capture="environment" onChange={verarbeiten} disabled={arbeitet} style={{ display: "none" }} />
+    <div className="reihe umbruch">
+      <label className={"knopf sekundaer" + (arbeitet ? " deaktiviert" : "")} style={{ cursor: arbeitet ? "wait" : "pointer" }}>
+        <Icon name="kamera" groesse={18} />
+        {arbeitet ? "Einen Moment …" : hatBild ? "Foto ersetzen" : "Foto hinzufügen"}
+        <input type="file" accept="image/*" capture="environment" onChange={verarbeiten} disabled={arbeitet} hidden />
       </label>
-      {hatBild && !fragen && <button className="linkknopf" onClick={() => setFragen(true)}>Bild entfernen</button>}
-      {hatBild && fragen && (
-        <div className="bestaetigung">
-          <div className="btext">Bild wirklich entfernen?</div>
-          <div className="aktionen eng">
-            <button className="warnknopf" onClick={entfernen}>Ja, entfernen</button>
-            <button className="sekundaer" onClick={() => setFragen(false)}>Abbrechen</button>
-          </div>
-        </div>
-      )}
-      {fehler && <div className="fehlertext">{fehler}</div>}
+      {hatBild && !arbeitet && <button className="knopf gefahr-leise" onClick={entfernen}>Foto entfernen</button>}
     </div>
   );
 }

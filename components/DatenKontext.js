@@ -1,38 +1,45 @@
 "use client";
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
 const Ctx = createContext(null);
 
 export function DatenProvider({ nutzer, children }) {
   const [vehicles, setVehicles] = useState([]);
   const [tools, setTools] = useState([]);
+  const [materials, setMaterials] = useState([]);
   const [laden, setLaden] = useState(true);
-  const [meldung, setMeldung] = useState(null);
+  const [toasts, setToasts] = useState([]);
+  const zaehler = useRef(0);
 
-  const laden_ausfuehren = useCallback(async () => {
+  const neuLaden = useCallback(async () => {
     try {
       const r = await fetch("/api/data", { cache: "no-store" });
+      if (r.status === 401) { window.location.href = "/login"; return; }
       if (!r.ok) return;
       const d = await r.json();
       setVehicles(d.vehicles || []);
       setTools(d.tools || []);
+      setMaterials(d.materials || []);
     } catch (e) { /* nächster Versuch folgt automatisch */ }
     setLaden(false);
   }, []);
 
   useEffect(() => {
-    laden_ausfuehren();
-    const t = setInterval(laden_ausfuehren, 15000);
-    return () => clearInterval(t);
-  }, [laden_ausfuehren]);
+    neuLaden();
+    const t = setInterval(() => { if (document.visibilityState === "visible") neuLaden(); }, 20000);
+    const sicht = () => { if (document.visibilityState === "visible") neuLaden(); };
+    document.addEventListener("visibilitychange", sicht);
+    return () => { clearInterval(t); document.removeEventListener("visibilitychange", sicht); };
+  }, [neuLaden]);
 
-  function melde(txt) {
-    setMeldung(txt);
-    setTimeout(() => setMeldung(null), 2400);
-  }
+  const melde = useCallback((text, typ = "ok") => {
+    const id = ++zaehler.current;
+    setToasts((l) => [...l, { id, text, typ }]);
+    setTimeout(() => setToasts((l) => l.filter((x) => x.id !== id)), 2800);
+  }, []);
 
   return (
-    <Ctx.Provider value={{ vehicles, tools, laden, neuLaden: laden_ausfuehren, melde, meldung, nutzer, istAdmin: nutzer.rolle === "admin" }}>
+    <Ctx.Provider value={{ vehicles, tools, materials, laden, neuLaden, melde, toasts, nutzer, istAdmin: nutzer.rolle === "admin" }}>
       {children}
     </Ctx.Provider>
   );

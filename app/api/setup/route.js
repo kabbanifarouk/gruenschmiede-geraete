@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { ersteinrichtung } from "@/lib/auth";
+import { antwortFehler } from "@/lib/route";
 
-// Ohne diese Zeile könnte Next.js die Antwort einmalig zwischenspeichern –
-// dann bliebe die Einrichtungsseite für immer sichtbar, selbst nachdem
-// der erste Zugang längst angelegt wurde.
 export const dynamic = "force-dynamic";
 
-export async function GET() {
-  const { count } = await db().from("staff").select("id", { count: "exact", head: true });
-  return NextResponse.json({ eingerichtet: !!count && count > 0 });
+export async function POST(req) {
+  try {
+    const { name, username, code, setupKey } = await req.json();
+    const person = await ersteinrichtung(name, username, code, setupKey);
+    return NextResponse.json({ ok: true, name: person.name });
+  } catch (e) {
+    return antwortFehler(e);
+  }
 }

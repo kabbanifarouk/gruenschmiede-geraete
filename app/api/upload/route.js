@@ -8,8 +8,10 @@ import { requireSession } from "@/lib/auth";
 // Supabase-Speicher). Ein fester Dateiname pro Gerät sorgt dafür, dass beim
 // Austauschen kein alter Datenmüll liegen bleibt.
 
+const TABELLEN = { tool: "tools", vehicle: "vehicles", material: "materials" };
+
 function ausTyp(art) {
-  return art === "vehicle" ? "vehicles" : "tools";
+  return TABELLEN[art];
 }
 
 export async function POST(req) {
@@ -18,7 +20,7 @@ export async function POST(req) {
     return NextResponse.json({ fehler: "nicht angemeldet" }, { status: e.status || 401 });
   }
   const { art, id, thumb, gross } = await req.json();
-  if (!["tool", "vehicle"].includes(art) || !id || !thumb || !gross) {
+  if (!TABELLEN[art] || !id || !thumb || !gross) {
     return NextResponse.json({ fehler: "Unvollständige Anfrage" }, { status: 400 });
   }
 
@@ -51,7 +53,7 @@ export async function DELETE(req) {
     return NextResponse.json({ fehler: "nicht angemeldet" }, { status: e.status || 401 });
   }
   const { art, id } = await req.json();
-  if (!["tool", "vehicle"].includes(art) || !id) {
+  if (!TABELLEN[art] || !id) {
     return NextResponse.json({ fehler: "Unvollständige Anfrage" }, { status: 400 });
   }
   const tabelle = ausTyp(art);
