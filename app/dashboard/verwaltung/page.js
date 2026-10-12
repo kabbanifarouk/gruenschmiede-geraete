@@ -67,7 +67,7 @@ function Team() {
         </div>
       </div>
       <p className="feld-hilfe" style={{ marginTop: 12 }}>
-        Mitarbeiter können Geräte umbuchen, Probleme melden und Material entnehmen oder zubuchen. Admins dürfen zusätzlich anlegen, bearbeiten und löschen.
+        Mitarbeiter können ihre Arbeitszeit auf Aufträgen erfassen, Geräte umbuchen, Probleme melden und Material buchen. Admins dürfen zusätzlich anlegen, bearbeiten, löschen und Zeiten für andere erfassen.
       </p>
 
       {dialog === "neu" && (
@@ -155,7 +155,7 @@ function NeuDialog({ liste, onClose, onFertig }) {
         <div className="feld">
           <span className="feld-label">Rolle</span>
           <div className="stapel-s">
-            {[["mitarbeiter", "Mitarbeiter", "Umbuchen, Probleme melden, Material buchen"], ["admin", "Admin", "Darf zusätzlich anlegen, bearbeiten und löschen"]].map(([k, l, t]) => (
+            {[["mitarbeiter", "Mitarbeiter", "Eigene Zeiten erfassen, umbuchen, Material buchen"], ["admin", "Admin", "Darf zusätzlich anlegen, bearbeiten und Zeiten für alle erfassen"]].map(([k, l, t]) => (
               <button key={k} type="button" className={"auswahl" + (rolle === k ? " aktiv" : "")} style={{ height: "auto", padding: "10px 14px" }} onClick={() => setRolle(k)} aria-pressed={rolle === k}>
                 <span className="zeile-mitte"><span>{l}</span><span className="leise klein" style={{ fontWeight: 450 }}>{t}</span></span>
                 {rolle === k && <Icon name="haken" groesse={18} className="auswahl-haken" />}

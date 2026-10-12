@@ -6,7 +6,7 @@ import FotoKnopf from "@/components/Foto";
 import { useDaten } from "@/components/DatenKontext";
 import { Bestaetigen, Dialog, Feld, Kachel, Laden, Leer, Seitenkopf, Status } from "@/components/ui";
 import Verlauf from "@/components/Verlauf";
-import { LAGER, STATUS, artFuer, fristText, heuteISO, pruefStatus, zeigeDatum } from "@/lib/format";
+import { LAGER, STATUS, fristText, heuteISO, pruefStatus, zeigeDatum } from "@/lib/format";
 import { api } from "@/lib/api";
 
 export default function GeraetSeite() {

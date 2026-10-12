@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Icon from "./Icon";
 import { DatenProvider, useDaten } from "./DatenKontext";
+import { TimerLeiste } from "./Zeiterfassung";
 import { bestandsLage, initialen } from "@/lib/format";
 
 function Toasts() {
@@ -29,6 +30,7 @@ function useNavigation() {
   };
   const punkte = [
     { href: "/dashboard", text: "Übersicht", icon: "home" },
+    { href: "/dashboard/auftraege", text: "Aufträge", icon: "baustelle" },
     { href: "/dashboard/geraete", text: "Geräte", icon: "werkzeug", zahl: auffaellig },
     { href: "/dashboard/lager", text: "Lager", icon: "lager", zahl: knapp },
   ];
@@ -97,7 +99,7 @@ export default function DashboardShell({ nutzer, children }) {
       <div className="rahmen">
         <Seitenleiste nutzer={nutzer} />
         <MobilKopf nutzer={nutzer} />
-        <main className="inhalt"><div className="inhalt-innen">{children}</div></main>
+        <main className="inhalt"><div className="inhalt-innen"><TimerLeiste />{children}</div></main>
         <Tabbar />
         <Toasts />
       </div>

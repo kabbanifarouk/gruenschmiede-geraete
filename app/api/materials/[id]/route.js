@@ -12,7 +12,7 @@ export async function GET(req, { params }) {
     await requireSession();
     const { data } = await db()
       .from("material_bewegungen")
-      .select("*")
+      .select("*, auftrag:auftrag_id(id, titel)")
       .eq("material_id", params.id)
       .order("created_at", { ascending: false })
       .limit(100);

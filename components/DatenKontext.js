@@ -7,6 +7,9 @@ export function DatenProvider({ nutzer, children }) {
   const [vehicles, setVehicles] = useState([]);
   const [tools, setTools] = useState([]);
   const [materials, setMaterials] = useState([]);
+  const [auftraege, setAuftraege] = useState([]);
+  const [laufend, setLaufend] = useState([]);
+  const [zeitVersatz, setZeitVersatz] = useState(0); // Server-Uhr minus Geräte-Uhr
   const [laden, setLaden] = useState(true);
   const [toasts, setToasts] = useState([]);
   const zaehler = useRef(0);
@@ -20,6 +23,9 @@ export function DatenProvider({ nutzer, children }) {
       setVehicles(d.vehicles || []);
       setTools(d.tools || []);
       setMaterials(d.materials || []);
+      setAuftraege(d.auftraege || []);
+      setLaufend(d.laufend || []);
+      if (d.jetzt) setZeitVersatz(new Date(d.jetzt).getTime() - Date.now());
     } catch (e) { /* nächster Versuch folgt automatisch */ }
     setLaden(false);
   }, []);
@@ -39,7 +45,7 @@ export function DatenProvider({ nutzer, children }) {
   }, []);
 
   return (
-    <Ctx.Provider value={{ vehicles, tools, materials, laden, neuLaden, melde, toasts, nutzer, istAdmin: nutzer.rolle === "admin" }}>
+    <Ctx.Provider value={{ vehicles, tools, materials, auftraege, laufend, zeitVersatz, laden, neuLaden, melde, toasts, nutzer, istAdmin: nutzer.rolle === "admin" }}>
       {children}
     </Ctx.Provider>
   );

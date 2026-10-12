@@ -28,8 +28,8 @@ export default function LagerSeite() {
     .filter((m) => passtSuche(`${m.name} ${m.kategorie} ${m.lagerort} ${m.artikel_nr}`, suche))
     .sort((a, b) => (ansicht === "kategorie" ? vergleich(a.kategorie || "~", b.kategorie || "~") : 0) || vergleich(a.name, b.name));
 
-  async function gebucht(art, menge, notiz) {
-    await api.materialBuchen(buchen.material.id, art, menge, notiz);
+  async function gebucht(art, menge, notiz, auftragId) {
+    await api.materialBuchen(buchen.material.id, art, menge, notiz, auftragId);
     await neuLaden();
     melde(art === "abgang" ? "Entnahme gebucht" : art === "zugang" ? "Zugang gebucht" : "Bestand korrigiert");
     setBuchen(null);

@@ -1,0 +1,1 @@
+{"extends":"next/core-web-vitals","env":{"browser":true,"node":true,"es2022":true},"rules":{"react/no-unescaped-entities":"off","@next/next/no-img-element":"off","no-undef":"error","no-unused-vars":["warn",{"args":"none","ignoreRestSiblings":true}]}}

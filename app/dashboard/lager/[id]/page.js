@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
 import FotoKnopf from "@/components/Foto";
@@ -40,8 +41,8 @@ export default function MaterialSeite() {
   const lage = bestandsLage(m);
   const wert = m.preis ? Number(m.preis) * Number(m.bestand || 0) : null;
 
-  async function gebucht(art, menge, notiz) {
-    await api.materialBuchen(m.id, art, menge, notiz);
+  async function gebucht(art, menge, notiz, auftragId) {
+    await api.materialBuchen(m.id, art, menge, notiz, auftragId);
     await Promise.all([neuLaden(), ladeBewegungen()]);
     melde(art === "abgang" ? "Entnahme gebucht" : art === "zugang" ? "Zugang gebucht" : "Bestand korrigiert");
     setDialog(null);
@@ -101,6 +102,7 @@ export default function MaterialSeite() {
                             {ART_TEXT[b.art]}
                             {b.art !== "angelegt" && <span style={{ color: menge >= 0 ? "var(--ok)" : "var(--warn)", marginLeft: 6 }}>{menge >= 0 ? "+" : "−"}{zahlText(Math.abs(menge))} {m.einheit}</span>}
                           </div>
+                          {b.auftrag && <Link href={`/dashboard/auftraege/${b.auftrag.id}`} className="textlink klein">{b.auftrag.titel}</Link>}
                           {b.notiz && <div className="klein">{b.notiz}</div>}
                           <div className="zeit-meta">{zeigeZeit(b.created_at)}{b.wer ? `, ${b.wer}` : ""}</div>
                         </div>

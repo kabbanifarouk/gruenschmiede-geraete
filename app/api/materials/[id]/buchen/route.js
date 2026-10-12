@@ -9,7 +9,7 @@ import { zahl } from "@/lib/material";
 export async function POST(req, { params }) {
   try {
     const sitzung = await requireSession();
-    const { art, menge, notiz } = await req.json();
+    const { art, menge, notiz, auftrag_id } = await req.json();
     if (!["zugang", "abgang", "korrektur"].includes(art)) {
       return NextResponse.json({ fehler: "Unbekannte Buchungsart." }, { status: 400 });
     }
@@ -22,6 +22,7 @@ export async function POST(req, { params }) {
     }
     const { data, error } = await db().rpc("material_buchen", {
       p_id: params.id, p_art: art, p_menge: m, p_notiz: (notiz || "").trim(), p_wer: sitzung.name,
+      p_auftrag: auftrag_id || null,
     });
     if (error) return NextResponse.json({ fehler: error.message }, { status: 400 });
     return NextResponse.json(data);

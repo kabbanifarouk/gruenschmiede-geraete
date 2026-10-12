@@ -3,8 +3,9 @@ import Link from "next/link";
 import Icon from "@/components/Icon";
 import { useDaten } from "@/components/DatenKontext";
 import { Kachel, Laden, Status } from "@/components/ui";
+import { Laufzeit } from "@/components/Zeiterfassung";
 import {
-  LAGER, STATUS, artFuer, artFuerMaterial, bestandsLage, fristText, pruefStatus, zahlText, zeigeDatum,
+  LAGER, artFuer, artFuerMaterial, bestandsLage, fristText, initialen, pruefStatus, uhrzeit, zahlText, zeigeDatum,
 } from "@/lib/format";
 
 function gruss() {
@@ -15,7 +16,7 @@ function gruss() {
 }
 
 export default function Uebersicht() {
-  const { vehicles, tools, materials, laden, nutzer, istAdmin } = useDaten();
+  const { vehicles, tools, materials, auftraege, laufend, laden, nutzer, istAdmin } = useDaten();
   if (laden) return <Laden />;
 
   const vorname = (nutzer.name || "").split(" ")[0];
@@ -80,8 +81,8 @@ export default function Uebersicht() {
         </div>
         {istAdmin && (
           <div className="seitenkopf-aktionen nur-desktop">
-            <Link href="/dashboard/lager/neu" className="knopf sekundaer"><Icon name="lager" groesse={18} />Material anlegen</Link>
-            <Link href="/dashboard/geraete/neu" className="knopf primaer"><Icon name="plus" groesse={18} />Gerät erfassen</Link>
+            <Link href="/dashboard/geraete/neu" className="knopf sekundaer"><Icon name="werkzeug" groesse={18} />Gerät erfassen</Link>
+            <Link href="/dashboard/auftraege/neu" className="knopf primaer"><Icon name="plus" groesse={18} />Auftrag anlegen</Link>
           </div>
         )}
       </div>
@@ -108,6 +109,30 @@ export default function Uebersicht() {
           <span className="kennzahl-fuss">von {materials.length} Artikeln</span>
         </Link>
       </div>
+
+      {laufend.length > 0 && (
+        <section className="abschnitt">
+          <div className="abschnitt-kopf">
+            <h2 className="titel-m reihe" style={{ gap: 10 }}><span className="live-punkt" />Gerade im Einsatz</h2>
+            <Link href="/dashboard/auftraege" className="textlink klein">Alle Aufträge</Link>
+          </div>
+          <div className="karte liste-zeilen">
+            {laufend.map((z) => {
+              const a = auftraege.find((x) => x.id === z.auftrag_id);
+              return (
+                <Link key={z.id} href={`/dashboard/auftraege/${z.auftrag_id}`} className="zeile">
+                  <span className="avatar hell">{initialen(z.wer)}</span>
+                  <span className="zeile-mitte">
+                    <span className="zeile-titel">{z.wer}</span>
+                    <span className="zeile-sub"><span><Icon name="baustelle" groesse={14} />{a?.titel || "Auftrag"}</span><span className="nur-desktop">seit {uhrzeit(z.start)} Uhr</span></span>
+                  </span>
+                  <span className="zeile-rechts"><Laufzeit start={z.start} className="einsatz-uhr" /><Icon name="weiter" groesse={18} className="chevron" /></span>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       <section className="abschnitt">
         <div className="abschnitt-kopf">
