@@ -42,7 +42,7 @@ export async function PATCH(req, { params }) {
 export async function DELETE(req, { params }) {
   try {
     await requireAdmin();
-    await db().storage.from("fotos").remove([`material/${params.id}.jpg`]);
+    await db().storage.from("fotos").remove([`material/${params.id}.jpg`, `material/${params.id}.webp`]);
     await db().from("materials").delete().eq("id", params.id);
     return NextResponse.json({ ok: true });
   } catch (e) {

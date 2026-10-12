@@ -43,6 +43,8 @@ const P = {
   route: <><path d="M3 6.5 9 3.5l6 3 6-3v14l-6 3-6-3-6 3z" /><path d="M9 3.5v14M15 6.5v14" /></>,
   stift: <><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" /></>,
 
+  notiz: <><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" /><path d="M14 3v6h6" /><path d="M8 13h8M8 17h5" /></>,
+
   // Geräte-Arten
   motorgeraet: <><rect x="2" y="9" width="9" height="7" rx="1.5" /><path d="M11 10.6h9.4a1.4 1.4 0 0 1 0 2.8H11" /><path d="M12.5 9.4v-1M15 9.4v-1M17.5 9.4v-1M20 9.4v-1" /><path d="M4 9V7.4h4.2" /></>,
   maeher: <><path d="M4 14.2h16v-3a2 2 0 0 0-2-2H8.4L4 14.2z" /><circle cx="7" cy="17.6" r="2" /><circle cx="17" cy="17.6" r="2" /><path d="M18.6 9.2V6.6a1.6 1.6 0 0 1 1.6-1.6H22" /></>,

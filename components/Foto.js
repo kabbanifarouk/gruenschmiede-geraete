@@ -1,37 +1,7 @@
 "use client";
 import { useState } from "react";
 import Icon from "./Icon";
-
-function bildLaden(datei) {
-  return new Promise((ok, fehler) => {
-    const leser = new FileReader();
-    leser.onerror = () => fehler(new Error("Datei nicht lesbar"));
-    leser.onload = () => {
-      const bild = new Image();
-      bild.onerror = () => fehler(new Error("Kein gültiges Bild"));
-      bild.onload = () => ok(bild);
-      bild.src = leser.result;
-    };
-    leser.readAsDataURL(datei);
-  });
-}
-
-function skalieren(bild, maxKante, guete) {
-  const f = Math.min(1, maxKante / Math.max(bild.width, bild.height));
-  const c = document.createElement("canvas");
-  c.width = Math.max(1, Math.round(bild.width * f));
-  c.height = Math.max(1, Math.round(bild.height * f));
-  c.getContext("2d").drawImage(bild, 0, 0, c.width, c.height);
-  return c.toDataURL("image/jpeg", guete);
-}
-
-function ausschnitt(bild, kante, guete) {
-  const c = document.createElement("canvas");
-  c.width = c.height = kante;
-  const k = Math.min(bild.width, bild.height);
-  c.getContext("2d").drawImage(bild, (bild.width - k) / 2, (bild.height - k) / 2, k, k, 0, 0, kante, kante);
-  return c.toDataURL("image/jpeg", guete);
-}
+import { komprimieren, vorschau } from "@/lib/bild";
 
 // Foto aufnehmen / austauschen / entfernen. art: "tool" | "vehicle" | "material"
 export default function FotoKnopf({ art, id, hatBild, onFertig, melde }) {
@@ -43,9 +13,9 @@ export default function FotoKnopf({ art, id, hatBild, onFertig, melde }) {
     if (!datei) return;
     setArbeitet(true);
     try {
-      const bild = await bildLaden(datei);
-      const gross = skalieren(bild, 1200, 0.74);
-      const thumb = ausschnitt(bild, 160, 0.62);
+      const g = await komprimieren(datei, { kante: 1280, guete: 0.72, maxBytes: 250 * 1024 });
+      const gross = g.url;
+      const thumb = vorschau(g.quelle, 120, 0.6).url;
       const r = await fetch("/api/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -44,7 +44,7 @@ export async function DELETE(req, { params }) {
     await requireAdmin();
     // Geräte aus dem entfernten Fahrzeug wandern zurück ins Lager.
     await db().from("tools").update({ ort_id: "lager" }).eq("ort_id", params.id);
-    await db().storage.from("fotos").remove([`vehicle/${params.id}.jpg`]);
+    await db().storage.from("fotos").remove([`vehicle/${params.id}.jpg`, `vehicle/${params.id}.webp`]);
     await db().from("vehicles").delete().eq("id", params.id);
     return NextResponse.json({ ok: true });
   } catch (e) {

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
+import { bildDekodieren } from "@/lib/bildServer";
 
-// Das Bild wird im Browser bereits verkleinert (siehe Upload-Komponente).
+// Das Bild wird im Browser bereits verkleinert und komprimiert (lib/bild.js).
 // Diese Route bekommt zwei fertige Bilder: einen winzigen Vorschau-Ausschnitt
 // (kommt direkt in die Datenbankzeile) und ein großes Foto (geht in den
 // Supabase-Speicher). Ein fester Dateiname pro Gerät sorgt dafür, dass beim
@@ -15,8 +16,7 @@ function ausTyp(art) {
 }
 
 export async function POST(req) {
-  let sitzung;
-  try { sitzung = await requireSession(); } catch (e) {
+  try { await requireSession(); } catch (e) {
     return NextResponse.json({ fehler: "nicht angemeldet" }, { status: e.status || 401 });
   }
   const { art, id, thumb, gross } = await req.json();
@@ -25,13 +25,18 @@ export async function POST(req) {
   }
 
   const tabelle = ausTyp(art);
-  const base64 = gross.split(",")[1];
-  const puffer = Buffer.from(base64, "base64");
-  const pfad = `${art}/${id}.jpg`;
+  let bild;
+  try { bild = bildDekodieren(gross, 1.5 * 1024 * 1024); } catch (e) {
+    return NextResponse.json({ fehler: e.message }, { status: e.status || 400 });
+  }
+  if (String(thumb).length > 60000) return NextResponse.json({ fehler: "Vorschaubild zu groß" }, { status: 413 });
+  const pfad = `${art}/${id}.${bild.endung}`;
+  // Ältere Version in anderem Format entfernen, damit kein Datenmüll bleibt
+  await db().storage.from("fotos").remove([`${art}/${id}.jpg`, `${art}/${id}.webp`].filter((x) => x !== pfad));
 
   const { error: hochladeFehler } = await db().storage
     .from("fotos")
-    .upload(pfad, puffer, { contentType: "image/jpeg", upsert: true });
+    .upload(pfad, bild.puffer, { contentType: bild.typ, upsert: true });
   if (hochladeFehler) return NextResponse.json({ fehler: hochladeFehler.message }, { status: 500 });
 
   const { data: oeffentlich } = db().storage.from("fotos").getPublicUrl(pfad);
@@ -57,8 +62,7 @@ export async function DELETE(req) {
     return NextResponse.json({ fehler: "Unvollständige Anfrage" }, { status: 400 });
   }
   const tabelle = ausTyp(art);
-  const pfad = `${art}/${id}.jpg`;
-  await db().storage.from("fotos").remove([pfad]);
+  await db().storage.from("fotos").remove([`${art}/${id}.jpg`, `${art}/${id}.webp`]);
   await db().from(tabelle).update({ foto_url: null, thumb: null, hat_bild: false }).eq("id", id);
   return NextResponse.json({ ok: true });
 }

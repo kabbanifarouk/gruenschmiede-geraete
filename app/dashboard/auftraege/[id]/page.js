@@ -3,6 +3,7 @@ import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
 import BuchenDialog from "@/components/BuchenDialog";
+import Notizen from "@/components/Notizen";
 import AuftragFormular, { leererAuftrag } from "@/components/AuftragFormular";
 import { Laufzeit, TeamStartDialog, ZeitDialog, useLaufzeit } from "@/components/Zeiterfassung";
 import { useDaten } from "@/components/DatenKontext";
@@ -21,7 +22,7 @@ export default function AuftragSeite() {
   const [laeuft, setLaeuft] = useState(false);
 
   const ladeDetails = useCallback(async () => {
-    try { setDetails(await api.auftragDetails(id)); } catch (e) { setDetails({ zeiten: [], material: [] }); }
+    try { setDetails(await api.auftragDetails(id)); } catch (e) { setDetails({ zeiten: [], material: [], notizen: [] }); }
   }, [id]);
   const laufSchluessel = laufend.filter((z) => z.auftrag_id === id).map((z) => z.id).join(",");
   useEffect(() => { ladeDetails(); }, [ladeDetails, laufSchluessel]);
@@ -244,6 +245,7 @@ export default function AuftragSeite() {
               </div>
             )}
           </div>
+          {details !== null && <Notizen auftrag={auftrag} notizen={details.notizen || []} onGeaendert={ladeDetails} />}
         </div>
 
         {istAdmin && (
