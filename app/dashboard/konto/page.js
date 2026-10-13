@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
 import { useDaten } from "@/components/DatenKontext";
+import { InstallAbschnitt } from "@/components/Pwa";
 import { Feld, Hinweis, Seitenkopf } from "@/components/ui";
 import { initialen } from "@/lib/format";
 import { api } from "@/lib/api";
@@ -76,6 +77,11 @@ export default function Konto() {
             ? "Aktuellen Code vergessen? Melde dich ab und nutze auf der Anmeldeseite „Code vergessen?“ mit dem Wiederherstellungsschlüssel."
             : "Aktuellen Code vergessen? Dein Admin kann dir in der Verwaltung einen neuen vergeben."}
         </p>
+      </section>
+
+      <section className="abschnitt">
+        <h2 className="titel-m" style={{ marginBottom: 12 }}>App auf dem Handy</h2>
+        <InstallAbschnitt />
       </section>
 
       <section className="abschnitt">

@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import Icon from "./Icon";
 import { DatenProvider, useDaten } from "./DatenKontext";
 import { TimerLeiste } from "./Zeiterfassung";
+import { InstallHinweis } from "./Pwa";
 import { bestandsLage, initialen } from "@/lib/format";
 
 function Toasts() {
@@ -34,7 +35,7 @@ function useNavigation() {
     { href: "/dashboard/geraete", text: "Geräte", icon: "werkzeug", zahl: auffaellig },
     { href: "/dashboard/lager", text: "Lager", icon: "lager", zahl: knapp },
   ];
-  if (istAdmin) punkte.push({ href: "/dashboard/verwaltung", text: "Verwaltung", icon: "team" });
+  if (istAdmin) punkte.push({ href: "/dashboard/verwaltung", text: "Verwaltung", kurz: "Admin", icon: "team" });
   return { punkte, aktiv };
 }
 
@@ -86,7 +87,7 @@ function Tabbar() {
         <Link key={p.href} href={p.href} className={"tab" + (aktiv(p.href) ? " aktiv" : "")}>
           <Icon name={p.icon} groesse={22} />
           {p.zahl > 0 && <span className="punkt-zahl">{p.zahl}</span>}
-          <span>{p.text}</span>
+          <span>{p.kurz || p.text}</span>
         </Link>
       ))}
     </nav>
@@ -99,7 +100,7 @@ export default function DashboardShell({ nutzer, children }) {
       <div className="rahmen">
         <Seitenleiste nutzer={nutzer} />
         <MobilKopf nutzer={nutzer} />
-        <main className="inhalt"><div className="inhalt-innen"><TimerLeiste />{children}</div></main>
+        <main className="inhalt"><div className="inhalt-innen"><InstallHinweis /><TimerLeiste />{children}</div></main>
         <Tabbar />
         <Toasts />
       </div>

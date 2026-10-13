@@ -1,12 +1,27 @@
 {
+  "id": "/dashboard",
   "name": "Grünschmiede Betriebsbestand",
   "short_name": "Grünschmiede",
+  "description": "Aufträge, Geräte, Lager und Arbeitszeiten der Grünschmiede Greenteam",
+  "lang": "de",
+  "dir": "ltr",
   "start_url": "/dashboard",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
   "background_color": "#edefe9",
-  "theme_color": "#1e3b2c",
+  "theme_color": "#edefe9",
+  "categories": ["business", "productivity"],
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Aufträge", "short_name": "Aufträge", "url": "/dashboard/auftraege", "icons": [{ "src": "/icon-96.png", "sizes": "96x96", "type": "image/png" }] },
+    { "name": "Lager", "short_name": "Lager", "url": "/dashboard/lager", "icons": [{ "src": "/icon-96.png", "sizes": "96x96", "type": "image/png" }] },
+    { "name": "Geräte", "short_name": "Geräte", "url": "/dashboard/geraete", "icons": [{ "src": "/icon-96.png", "sizes": "96x96", "type": "image/png" }] }
   ]
 }
